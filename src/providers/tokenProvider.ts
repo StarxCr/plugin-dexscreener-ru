@@ -1,25 +1,5 @@
 import type { Provider, IAgentRuntime, Memory, State } from "@elizaos/core";
 
-/*
-interface TokenPriceData {
-    baseToken: {
-        name: string;
-        symbol: string;
-        address: string;
-        decimals: number;
-    };
-    priceUsd: string;
-    priceChange: {
-        h1: number;
-        h24: number;
-    };
-    liquidityUsd: string;
-    volume: {
-        h24: number;
-    };
-}
-*/
-
 interface DexScreenerPair {
     baseToken: {
         name: string;
@@ -55,7 +35,8 @@ export class TokenPriceProvider implements Provider {
             // Extract token from content
             const tokenIdentifier = this.extractToken(content);
             if (!tokenIdentifier) {
-                throw new Error("Could not identify token in message");
+                // throw new Error("Could not identify token in message");
+                return
             }
 
             console.log(`Fetching price for token: ${tokenIdentifier}`);
@@ -93,6 +74,7 @@ export class TokenPriceProvider implements Provider {
             /0x[a-fA-F0-9]{40}/, // ETH address
             /[$#]([a-zA-Z0-9]+)/, // $TOKEN or #TOKEN
             /(?:price|value|worth|cost)\s+(?:of|for)\s+([a-zA-Z0-9]+)/i, // "price of TOKEN"
+            /(?:цена|стоимость|стоит)\s+([a-zA-Z0-9]+)/i, //цена
             /\b(?:of|for)\s+([a-zA-Z0-9]+)\b/i, // "of TOKEN"
         ];
 
@@ -125,7 +107,7 @@ export class TokenPriceProvider implements Provider {
         const volume = (pair.volume?.h24 || 0).toLocaleString();
 
         return `
-        The price of ${pair.baseToken.symbol} is $${price} USD, with liquidity of $${liquidity} and 24h volume of $${volume}.`;
+        ${pair.baseToken.symbol} стоит $${price}\nЛиквидность: $${liquidity}\nОбъем за сутки: $${volume}.`;
     }
 }
 

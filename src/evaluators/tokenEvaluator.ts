@@ -13,7 +13,7 @@ export class TokenPriceEvaluator implements Evaluator {
         if (!content) return false;
 
         // Check for price-related keywords
-        const hasPriceKeyword = /\b(price|value|worth|cost)\b/i.test(content);
+        const hasPriceKeyword = /\b(price|value|worth|cost)\b/i.test(content) || /(цен.|стоимость|стоит.)/i.test(content);;
 
         // Look for either:
         // 1. Ethereum address
@@ -33,46 +33,46 @@ export class TokenPriceEvaluator implements Evaluator {
     }
 
     examples = [
+    {
+      context: "Пользователь хочет узнать цену с помощью адреса",
+      messages: [
         {
-            context: "User asking for token price with address",
-            messages: [
-                {
-                    user: "{{user}}",
-                    content: {
-                        text: "What's the price of 0x1234567890123456789012345678901234567890?",
-                        action: "GET_TOKEN_PRICE"
-                    }
-                }
-            ],
-            outcome: "GET_TOKEN_PRICE"
-        },
-        {
-            context: "User checking token price with $ symbol",
-            messages: [
-                {
-                    user: "{{user}}",
-                    content: {
-                        text: "Check price of $eth",
-                        action: "GET_TOKEN_PRICE"
-                    }
-                }
-            ],
-            outcome: "GET_TOKEN_PRICE"
-        },
-        {
-            context: "User checking token price with plain symbol",
-            messages: [
-                {
-                    user: "{{user}}",
-                    content: {
-                        text: "What's the value for btc",
-                        action: "GET_TOKEN_PRICE"
-                    }
-                }
-            ],
-            outcome: "GET_TOKEN_PRICE"
+          user: "{{user1}}",
+          content: {
+            text: "Цена 0x1234567890123456789012345678901234567890?",
+            action: "GET_TOKEN_PRICE"
+          }
         }
-    ];
+      ],
+      outcome: "GET_TOKEN_PRICE"
+    },
+    {
+      context: "User checking token price with $ symbol",
+      messages: [
+        {
+          user: "{{user1}}",
+          content: {
+            text: "Check price of $eth",
+            action: "GET_TOKEN_PRICE"
+          }
+        }
+      ],
+      outcome: "GET_TOKEN_PRICE"
+    },
+    {
+      context: "User checking token price with plain symbol",
+      messages: [
+        {
+          user: "{{user1}}",
+          content: {
+            text: "What's the value for btc",
+            action: "GET_TOKEN_PRICE"
+          }
+        }
+      ],
+      outcome: "GET_TOKEN_PRICE"
+    }
+  ];
 }
 
 export const tokenPriceEvaluator = new TokenPriceEvaluator();

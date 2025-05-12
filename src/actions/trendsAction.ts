@@ -13,6 +13,7 @@ interface TokenProfile {
     description?: string;
     chainId: string;
     tokenAddress: string;
+    links: {url:string}[]
 }
 
 const createTokenMemory = async (
@@ -31,17 +32,17 @@ const createTokenMemory = async (
     await runtime.messageManager.createMemory(memory);
 };
 
-export const latestTokensTemplate = `Determine if this is a request for latest tokens. If it is one of the specified situations, perform the corresponding action:
+export const latestTokensTemplate = `Определите, является ли это запросом на получение последних токенов. Если это один из указанных случаев, выполните соответствующее действие:
 
-Situation 1: "Get latest tokens"
-- Message contains: words like "latest", "new", "recent" AND "tokens"
-- Example: "Show me the latest tokens" or "What are the new tokens?"
-- Action: Get the most recent tokens listed
+Ситуация 1: "Получить последние токены"
+- Сообщение содержит: слова вроде "последние", "новые", "свежие" И "токены"
+- Пример: "Покажи последние токены" или "Какие новые токены появились?"
+- Действие: Получить список самых недавно добавленных токенов
 
-Previous conversation for context:
+Предыдущий диалог для контекста:
 {{conversation}}
 
-You are replying to: {{message}}
+Вы отвечаете на сообщение: {{message}}
 `;
 
 export class LatestTokensAction implements Action {
@@ -59,8 +60,8 @@ export class LatestTokensAction implements Action {
 
         if (!content) return false;
 
-        const hasLatestKeyword = /\b(latest|new|recent)\b/i.test(content);
-        const hasTokensKeyword = /\b(tokens?|coins?|crypto)\b/i.test(content);
+        const hasLatestKeyword = /\b(latest|new|recent)\b/i.test(content) || /(последн..|нов..|недавн..)/i.test(content);;
+        const hasTokensKeyword = /\b(tokens?|coins?|crypto)\b/i.test(content) || /(токен|токен.|токен..|монет..|монет.|монет)/i.test(content);;
 
         return hasLatestKeyword && hasTokensKeyword;
     }
@@ -93,9 +94,14 @@ export class LatestTokensAction implements Action {
 
             const formattedOutput = tokens
                 .map((token) => {
-                    const description =
-                        token.description || "No description available";
-                    return `Chain: ${token.chainId}\nToken Address: ${token.tokenAddress}\nURL: ${token.url}\nDescription: ${description}\n\n`;
+                    const [website, twitter, tg] = token.links
+                    const description = token.description || "-";
+                     return `${token.chainId}
+                [📜${token.tokenAddress}](${token.url})
+                ${website?(`[🌐Сайт](${website.url})`): ("")}${twitter?(`\n[🟢X](${twitter.url})`): ("")}${tg?(`\n[🔵Telegram](${tg.url})`): ("")}   
+                Description: ${description}
+
+                `;
                 })
                 .join("");
 
@@ -124,35 +130,65 @@ export class LatestTokensAction implements Action {
     }
 
     examples = [
-        [
-            {
-                user: "{{user}}",
-                content: {
-                    text: "show me the latest tokens",
-                },
-            },
-            {
-                user: "{{system}}",
-                content: {
-                    text: "Here are the latest tokens added to DexScreener...",
-                    action: "GET_LATEST_TOKENS",
-                },
-            },
-        ],
-    ];
+    [
+      {
+        user: "{{user1}}",
+        content: {
+          text: "покажи мне последние токены"
+        }
+      },
+      {
+        user: "{{agent}}",
+        content: {
+          text: "Here are the latest tokens added to DexScreener...",
+          action: "GET_LATEST_TOKENS"
+        }
+      }
+    ],
+    [
+      {
+        user: "{{user1}}",
+        content: {
+          text: "список новых токенов"
+        }
+      },
+      {
+        user: "{{agent}}",
+        content: {
+          text: "Here are the latest tokens added to DexScreener...",
+          action: "GET_LATEST_TOKENS"
+        }
+      }
+    ],
+    [
+      {
+        user: "{{user1}}",
+        content: {
+          text: "список последних токенов"
+        }
+      },
+      {
+        user: "{{agent}}",
+        content: {
+          text: "Here are the latest tokens added to DexScreener...",
+          action: "GET_LATEST_TOKENS"
+        }
+      }
+    ]
+  ];
 }
 
-export const latestBoostedTemplate = `Determine if this is a request for latest boosted tokens. If it is one of the specified situations, perform the corresponding action:
+export const latestBoostedTemplate = `Определите, является ли это запросом на получение последних токенов с бустом. Если это один из указанных случаев, выполните соответствующее действие:
 
-Situation 1: "Get latest boosted tokens"
-- Message contains: words like "latest", "new", "recent" AND "boosted tokens"
-- Example: "Show me the latest boosted tokens" or "What are the new promoted tokens?"
-- Action: Get the most recent boosted tokens
+Ситуация 1: "Получить последние продвигаемые токены"
+- Сообщение содержит: слова вроде "последние", "новые", "бустят","свежие", "токены с бустом" И "буст токены"
+- Пример: "Покажи последние продвигаемые токены" или "Какие новые токены продвигаются?"
+- Действие: GET_LATEST_BOOSTED_TOKENS
 
-Previous conversation for context:
+Предыдущий диалог для контекста:
 {{conversation}}
 
-You are replying to: {{message}}
+Вы отвечаете на сообщение: {{message}}
 `;
 
 export class LatestBoostedTokensAction implements Action {
@@ -174,11 +210,9 @@ export class LatestBoostedTokensAction implements Action {
 
         if (!content) return false;
 
-        const hasLatestKeyword = /\b(latest|new|recent)\b/i.test(content);
-        const hasBoostedKeyword = /\b(boosted|promoted|featured)\b/i.test(
-            content
-        );
-        const hasTokensKeyword = /\b(tokens?|coins?|crypto)\b/i.test(content);
+        const hasLatestKeyword = /\b(latest|new|recent)\b/i.test(content)|| /(последн..|нов..|недавн..)/i.test(content);;
+        const hasBoostedKeyword = /\b(boosted|promoted|featured)\b/i.test(content) || /(буст|буст..|продвигаем..|продвижен..)/i.test(content);;
+        const hasTokensKeyword = /\b(tokens?|coins?|crypto)\b/i.test(content) || /(токен|токен.|токен..|монет..|монет.|монет)/i.test(content);;
 
         return hasLatestKeyword && (hasBoostedKeyword || hasTokensKeyword);
     }
@@ -211,10 +245,8 @@ export class LatestBoostedTokensAction implements Action {
 
             const formattedOutput = tokens
                 .map((token) => {
-                    const description =
-                        token.description || "No description available";
-                    return `Chain: ${token.chainId}\nToken Address: ${token.tokenAddress}\nURL: ${token.url}\nDescription: ${description}\n\n`;
-                })
+                           const description = token.description || "";
+                    return ` ${token.chainId}\n [${token.tokenAddress}](${token.url}) \n Description: ${description}`;})
                 .join("");
 
             await createTokenMemory(runtime, message, formattedOutput);
@@ -242,35 +274,48 @@ export class LatestBoostedTokensAction implements Action {
     }
 
     examples = [
-        [
-            {
-                user: "{{user}}",
-                content: {
-                    text: "show me the latest boosted tokens",
-                },
-            },
-            {
-                user: "{{system}}",
-                content: {
-                    text: "Here are the latest boosted tokens on DexScreener...",
-                    action: "GET_LATEST_BOOSTED_TOKENS",
-                },
-            },
-        ],
-    ];
+    [
+      {
+        user: "{{user1}}",
+        content: {
+          text: "покажи список новых токенов с продвижением"
+        }
+      },
+      {
+        user: "{{agent}}",
+        content: {
+          action: "GET_LATEST_BOOSTED_TOKENS"
+        }
+      }
+    ],
+    [
+      {
+        user: "{{user1}}",
+        content: {
+          text: "новые токены с бустом"
+        }
+      },
+      {
+        user: "{{agent}}",
+        content: {
+          action: "GET_LATEST_BOOSTED_TOKENS"
+        }
+      }
+    ]
+  ];
 }
 
-export const topBoostedTemplate = `Determine if this is a request for top boosted tokens. If it is one of the specified situations, perform the corresponding action:
+export const topBoostedTemplate = `Определите, является ли это запросом на топ токенов с бустом. Если это один из указанных случаев, выполните соответствующее действие:
 
-Situation 1: "Get top boosted tokens"
-- Message contains: words like "top", "best", "most" AND "boosted tokens"
-- Example: "Show me the top boosted tokens" or "What are the most promoted tokens?"
-- Action: Get the tokens with most active boosts
+Ситуация 1: "Получить топ токенов c бустом"
+- Сообщение содержит: слова вроде "в топе", "лидрующие", "топ", "лучшие", "самые","продвигаемые" И "токены с бустом"
+- Пример: "Покажи топ токенов с бустом", "лидирующие токены с бустом" или "Какие токены продвигаются больше всего?"
+- Действие: GET_TOP_BOOSTED_TOKENS
 
-Previous conversation for context:
+Предыдущий диалог для контекста:
 {{conversation}}
 
-You are replying to: {{message}}
+Вы отвечаете на сообщение: {{message}}
 `;
 
 export class TopBoostedTokensAction implements Action {
@@ -292,11 +337,9 @@ export class TopBoostedTokensAction implements Action {
 
         if (!content) return false;
 
-        const hasTopKeyword = /\b(top|best|most)\b/i.test(content);
-        const hasBoostedKeyword = /\b(boosted|promoted|featured)\b/i.test(
-            content
-        );
-        const hasTokensKeyword = /\b(tokens?|coins?|crypto)\b/i.test(content);
+        const hasTopKeyword = /\b(top|best|most)\b/i.test(content)|| /(топ|топ.|топовы.)/i.test(content);;
+        const hasBoostedKeyword = /\b(boosted|promoted|featured)\b/i.test(content) || /(буст|буст..|продвигаем..|продвижен..)/i.test(content);;
+        const hasTokensKeyword = /\b(tokens?|coins?|crypto)\b/i.test(content)|| /(токен|токен.|токен..|монет..|монет.|монет)/i.test(content);;
 
         return hasTopKeyword && (hasBoostedKeyword || hasTokensKeyword);
     }
@@ -329,10 +372,14 @@ export class TopBoostedTokensAction implements Action {
 
             const formattedOutput = tokens
                 .map((token) => {
-                    const description =
-                        token.description || "No description available";
-                    return `Chain: ${token.chainId}\nToken Address: ${token.tokenAddress}\nURL: ${token.url}\nDescription: ${description}\n\n`;
-                })
+                   const [website, twitter, tg] = token.links
+        const description = token.description || "-";
+        return `${token.chainId}
+[📜${token.tokenAddress}](${token.url})
+${website?(`[🌐Сайт](${website.url})`): ("")}${twitter?(`\n[🟢X](${twitter.url})`): ("")}${tg?(`\n[🔵Telegram](${tg.url})`): ("")}   
+Description: ${description}
+
+`;})
                 .join("");
 
             await createTokenMemory(runtime, message, formattedOutput);
@@ -360,22 +407,37 @@ export class TopBoostedTokensAction implements Action {
     }
 
     examples = [
-        [
-            {
-                user: "{{user}}",
-                content: {
-                    text: "show me the top boosted tokens",
-                },
-            },
-            {
-                user: "{{system}}",
-                content: {
-                    text: "Here are the tokens with the most active boosts on DexScreener...",
-                    action: "GET_TOP_BOOSTED_TOKENS",
-                },
-            },
-        ],
-    ];
+    [
+      {
+        user: "{{user1}}",
+        content: {
+          text: "покажи топовые токены с бустом"
+        }
+      },
+      {
+        user: "{{agent}}",
+        content: {
+          text: "Here are the tokens with the most active boosts on DexScreener...",
+          action: "GET_TOP_BOOSTED_TOKENS"
+        }
+      }
+    ],
+    [
+      {
+        user: "{{user1}}",
+        content: {
+          text: "покажи токены в топе с бустом"
+        }
+      },
+      {
+        user: "{{agent}}",
+        content: {
+          text: "Here are the tokens with the most active boosts on DexScreener...",
+          action: "GET_TOP_BOOSTED_TOKENS"
+        }
+      }
+    ]
+  ];
 }
 
 export const latestTokensAction = new LatestTokensAction();
