@@ -1,19 +1,17 @@
 # @elizaos/plugin-dexscreener
 
-A plugin for accessing DexScreener's token data and price information through your Eliza agent.
+Плагин для получения данных о токенах и их ценах с помощью DexScreener через вашего ИИ-агента.
 
 ## Installation
 
 ```bash
-pnpm add @elizaos/plugin-dexscreener
+pnpm add StarxCr/plugin-dexscreener-ru
 ```
 
-## Usage
-
-Add the plugin to your character configuration:
+## Использование плагина
 
 ```typescript
-import { dexScreenerPlugin } from "@elizaos/plugin-dexscreener";
+import { dexScreenerPlugin } from "@elizaos/plugin-dexscreener-ru";
 
 const character = {
     plugins: [dexScreenerPlugin]
@@ -25,55 +23,54 @@ const character = {
 ### Token Price Checking
 Query token prices using addresses or symbols:
 ```plaintext
-"What's the price of ETH?"
-"Check price of 0x1234..."
-"How much is $BTC worth?"
+"Какая цена у ETH?"
+"Проверь цену 0x1234..."
+"Сколько стоит $BTC?"
 ```
 
 ### Token Trends
 View latest and trending tokens:
 ```plaintext
-"Show me the latest tokens"
-"What are the new boosted tokens?"
-"Show me the top boosted tokens"
+"Покажи последние токены"
+"Какие новые продвигаются токены?"
+"Покажи самые популярные продвигаемые токены"
 ```
 
 ## Available Actions
 
 ### GET_TOKEN_PRICE
-Fetches current token price and market information.
-- Aliases: `FETCH_TOKEN_PRICE`, `CHECK_TOKEN_PRICE`, `TOKEN_PRICE`
-- Supports ETH addresses and token symbols (with or without $ prefix)
-- Returns price, liquidity, and 24h volume information
+Получение текущей цены и рыночной информации о токене.
+- Синонимы: `FETCH_TOKEN_PRICE`, `CHECK_TOKEN_PRICE`, `TOKEN_PRICE`
+- Поддерживает: Ethereum-адреса, символы токенов с префиксом $ или без
+- Возвращает: цену, ликвидность, объём торгов за 24 часа
 
 ### GET_LATEST_TOKENS
-Retrieves the most recently listed tokens.
-- Aliases: `FETCH_NEW_TOKENS`, `CHECK_RECENT_TOKENS`, `LIST_NEW_TOKENS`
-
+Получение списка последних добавленных токенов.
+- Синонимы: `FETCH_NEW_TOKENS`, `CHECK_RECENT_TOKENS`, `LIST_NEW_TOKENS`
 ### GET_LATEST_BOOSTED_TOKENS
-Fetches the most recently boosted tokens.
-- Aliases: `FETCH_NEW_BOOSTED_TOKENS`, `CHECK_RECENT_BOOSTED_TOKENS`
-
+Получение списка недавно продвигаемых токенов.
+- Синонимы: `FETCH_NEW_BOOSTED_TOKENS`, `CHECK_RECENT_BOOSTED_TOKENS`
 ### GET_TOP_BOOSTED_TOKENS
-Shows tokens with the most active boosts.
-- Aliases: `FETCH_MOST_BOOSTED_TOKENS`, `CHECK_HIGHEST_BOOSTED_TOKENS`
+Получение токенов с наибольшим количеством активных бустов.
+- Синонимы: `FETCH_MOST_BOOSTED_TOKENS`, `CHECK_HIGHEST_BOOSTED_TOKENS`
+
 
 ## Providers
 
 ### TokenPriceProvider
-Provides token price data from DexScreener API:
-- Current price in USD
-- Liquidity information
-- 24h volume data
-- Automatic best pair selection by liquidity
+Источник данных о ценах токенов через DexScreener API:
+- Текущая цена в долларах США
+- Информация о ликвидности
+- Объём торгов за последние 24 часа
+- Автоматический выбор лучшей торговой пары по ликвидности
 
 ## Evaluators
 
 ### TokenPriceEvaluator
-Evaluates messages for token price requests:
-- Detects price-related keywords
-- Identifies token addresses and symbols
-- Supports multiple token identifier formats:
-  - Ethereum addresses
-  - Symbols with $ or # prefix
-  - Natural language patterns ("price of TOKEN")
+Оценивает, является ли сообщение запросом на получение цены токена:
+- Распознаёт ключевые слова, связанные с ценами
+- Определяет адреса и символы токенов
+- Поддерживает разные форматы:
+- Ethereum-адреса
+- Символы с префиксами $ или #
+- Естественные фразы вроде "цена токена"
