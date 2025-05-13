@@ -15,7 +15,7 @@ var TokenPriceProvider = class {
       }
       const tokenIdentifier = this.extractToken(content);
       if (!tokenIdentifier) {
-        throw new Error("Could not identify token in message");
+        return;
       }
       console.log(`Fetching price for token: ${tokenIdentifier}`);
       const isAddress = /^0x[a-fA-F0-9]{40}$/.test(tokenIdentifier) || /^[1-9A-HJ-NP-Za-km-z]{43,44}$/.test(tokenIdentifier);
@@ -43,6 +43,8 @@ var TokenPriceProvider = class {
       // $TOKEN or #TOKEN
       /(?:price|value|worth|cost)\s+(?:of|for)\s+([a-zA-Z0-9]+)/i,
       // "price of TOKEN"
+      /(?:цена|стоимость|стоит)\s+([a-zA-Z0-9]+)/i,
+      //цена
       /\b(?:of|for)\s+([a-zA-Z0-9]+)\b/i
       // "of TOKEN"
     ];
@@ -71,23 +73,25 @@ var TokenPriceProvider = class {
     ).toLocaleString();
     const volume = (((_b = pair.volume) == null ? void 0 : _b.h24) || 0).toLocaleString();
     return `
-        The price of ${pair.baseToken.symbol} is $${price} USD, with liquidity of $${liquidity} and 24h volume of $${volume}.`;
+        ${pair.baseToken.symbol} \u0441\u0442\u043E\u0438\u0442 $${price}
+\u041B\u0438\u043A\u0432\u0438\u0434\u043D\u043E\u0441\u0442\u044C: $${liquidity}
+\u041E\u0431\u044A\u0435\u043C \u0437\u0430 \u0441\u0443\u0442\u043A\u0438: $${volume}.`;
   }
 };
 var tokenPriceProvider = new TokenPriceProvider();
 
 // src/actions/tokenAction.ts
-var priceTemplate = `Determine if this is a token price request. If it is one of the specified situations, perform the corresponding action:
+var priceTemplate = `\u041E\u043F\u0440\u0435\u0434\u0435\u043B\u0438\u0442\u0435, \u044F\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u043B\u0438 \u044D\u0442\u043E \u0437\u0430\u043F\u0440\u043E\u0441\u043E\u043C \u043D\u0430 \u0446\u0435\u043D\u0443 \u0442\u043E\u043A\u0435\u043D\u0430. \u0415\u0441\u043B\u0438 \u044D\u0442\u043E \u043E\u0434\u0438\u043D \u0438\u0437 \u0443\u043A\u0430\u0437\u0430\u043D\u043D\u044B\u0445 \u0441\u043B\u0443\u0447\u0430\u0435\u0432, \u0432\u044B\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u044E\u0449\u0435\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435:
 
-Situation 1: "Get token price"
-- Message contains: words like "price", "value", "cost", "worth" AND a token symbol/address
-- Example: "What's the price of ETH?" or "How much is BTC worth?"
-- Action: Get the current price of the token
+\u0421\u0438\u0442\u0443\u0430\u0446\u0438\u044F 1: "\u041F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u0446\u0435\u043D\u0443 \u0442\u043E\u043A\u0435\u043D\u0430"
+- \u0421\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u0435 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442: \u0441\u043B\u043E\u0432\u0430 \u0432\u0440\u043E\u0434\u0435 "\u0446\u0435\u043D\u0430", "\u0441\u0442\u043E\u0438\u043C\u043E\u0441\u0442\u044C", "\u0446\u0435\u043D\u043D\u043E\u0441\u0442\u044C", "\u0441\u043A\u043E\u043B\u044C\u043A\u043E \u0441\u0442\u043E\u0438\u0442" \u0418 \u0441\u0438\u043C\u0432\u043E\u043B/\u0430\u0434\u0440\u0435\u0441 \u0442\u043E\u043A\u0435\u043D\u0430
+- \u041F\u0440\u0438\u043C\u0435\u0440: "\u0421\u043A\u043E\u043B\u044C\u043A\u043E \u0441\u0442\u043E\u0438\u0442 ETH?", "\u0421\u043A\u043E\u043B\u044C\u043A\u043E \u0441\u0442\u043E\u0438\u0442 0xfbd2bc331233f9747d5aa57b0cdf8e0289ca4444?" \u0438\u043B\u0438 "\u041A\u0430\u043A\u043E\u0432\u0430 \u0446\u0435\u043D\u0430 BTC?"
+- \u0414\u0435\u0439\u0441\u0442\u0432\u0438\u0435: \u041F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u0442\u0435\u043A\u0443\u0449\u0443\u044E \u0446\u0435\u043D\u0443 \u0442\u043E\u043A\u0435\u043D\u0430
 
-Previous conversation for context:
+\u041F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0438\u0439 \u0434\u0438\u0430\u043B\u043E\u0433 \u0434\u043B\u044F \u043A\u043E\u043D\u0442\u0435\u043A\u0441\u0442\u0430:
 {{conversation}}
 
-You are replying to: {{message}}
+\u0412\u044B \u043E\u0442\u0432\u0435\u0447\u0430\u0435\u0442\u0435 \u043D\u0430 \u0441\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u0435: {{message}}
 `;
 var TokenPriceAction = class {
   name = "GET_TOKEN_PRICE";
@@ -99,7 +103,8 @@ var TokenPriceAction = class {
     var _a;
     const content = typeof message.content === "string" ? message.content : (_a = message.content) == null ? void 0 : _a.text;
     if (!content) return false;
-    const hasPriceKeyword = /\b(price|value|worth|cost)\b/i.test(content);
+    const hasPriceKeyword = /\b(price|value|worth|cost)\b/i.test(content) || /(цен.|стоимость|стоит.)/i.test(content);
+    ;
     const hasToken = /0x[a-fA-F0-9]{40}/.test(content) || /[$#]?[a-zA-Z0-9]+/i.test(content);
     return hasPriceKeyword && hasToken;
   }
@@ -142,43 +147,58 @@ var TokenPriceAction = class {
   examples = [
     [
       {
-        user: "{{user}}",
+        user: "{{user1}}",
         content: {
           text: "check price of eth"
         }
       },
       {
-        user: "{{system}}",
+        user: "{{agent}}",
         content: {
-          text: "The current price of Ethereum (ETH) is $2,345.67 with a 24h trading volume of $9.87B. The liquidity pool holds $1.23B, and the price has changed +5.43% in the last 24 hours.",
+          text: "ETH: $2\u202F345,67 (+5,43% \u0437\u0430 24\u0447)\n \u041E\u0431\u044A\u0451\u043C $9,87B \n \u041B\u0438\u043A\u0432\u0438\u0434\u043D\u043E\u0441\u0442\u044C $1,23B.",
           action: "GET_TOKEN_PRICE"
         }
       }
     ],
     [
       {
-        user: "{{user}}",
+        user: "{{user1}}",
         content: {
-          text: "How much is BTC worth right now?"
+          text: "\u0446\u0435\u043D\u0430 eth"
         }
       },
       {
-        user: "{{system}}",
+        user: "{{agent1}}",
         content: {
-          text: "Bitcoin (BTC) is currently trading at $42,567.89. There's $15.23B in liquidity, with a 24h volume of $25.87B. The price is up 2.15% in the last 24 hours.",
+          text: "ETH: $2\u202F345,67 (+5,43% \u0437\u0430 24\u0447)\n \u041E\u0431\u044A\u0451\u043C $9,87B \n \u041B\u0438\u043A\u0432\u0438\u0434\u043D\u043E\u0441\u0442\u044C $1,23B.",
           action: "GET_TOKEN_PRICE"
         }
       }
     ],
     [
       {
-        user: "{{user}}",
+        user: "{{user1}}",
+        content: {
+          text: "\u0421\u043A\u043E\u043B\u044C\u043A\u043E \u0441\u0435\u0447\u0430\u0441 \u0441\u0442\u043E\u0438\u0442 BTC?"
+        }
+      },
+      {
+        user: "{{agent}}",
+        content: {
+          text: "BTC: $42\u202F567,89 (+2,15% \u0437\u0430 24\u0447) \n \u041E\u0431\u044A\u0451\u043C: $25,87B \n \u041B\u0438\u043A\u0432\u0438\u0434\u043D\u043E\u0441\u0442\u044C: $15,23B.",
+          action: "GET_TOKEN_PRICE"
+        }
+      }
+    ],
+    [
+      {
+        user: "{{user1}}",
         content: {
           text: "what's the current value of $bnb"
         }
       },
       {
-        user: "{{system}}",
+        user: "{{agent}}",
         content: {
           text: "Binance Coin (BNB) is priced at $345.67 with $5.23B in liquidity. The trading volume over the last 24h is $1.87B, and the price has decreased by 1.23% during this period.",
           action: "GET_TOKEN_PRICE"
@@ -187,13 +207,13 @@ var TokenPriceAction = class {
     ],
     [
       {
-        user: "{{user}}",
+        user: "{{user1}}",
         content: {
           text: "can you tell me the price for USDT?"
         }
       },
       {
-        user: "{{system}}",
+        user: "{{agent}}",
         content: {
           text: "Tether (USDT) is maintaining its peg at $1.00 with minimal change (+0.01%). The token has $25.23B in liquidity and has seen $45.87B in trading volume over the past 24 hours.",
           action: "GET_TOKEN_PRICE"
@@ -202,13 +222,13 @@ var TokenPriceAction = class {
     ],
     [
       {
-        user: "{{user}}",
+        user: "{{user1}}",
         content: {
           text: "show me the cost of #SOL"
         }
       },
       {
-        user: "{{system}}",
+        user: "{{agent}}",
         content: {
           text: "Solana (SOL) is trading at $123.45, showing strong momentum with an 8.75% increase in the last 24 hours. The liquidity stands at $3.23B with a 24h trading volume of $987.54M.",
           action: "GET_TOKEN_PRICE"
@@ -217,13 +237,13 @@ var TokenPriceAction = class {
     ],
     [
       {
-        user: "{{user}}",
+        user: "{{user1}}",
         content: {
-          text: "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0 price please"
+          text: "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0 \u0446\u0435\u043D\u0430"
         }
       },
       {
-        user: "{{system}}",
+        user: "{{agent}}",
         content: {
           text: "The price of Polygon (MATIC) is currently $1.23, up 3.45% in the past 24 hours. The token has $2.23B in liquidity and has seen $567.54M in trading volume today.",
           action: "GET_TOKEN_PRICE"
@@ -243,7 +263,8 @@ var TokenPriceEvaluator = class {
     var _a;
     const content = typeof message.content === "string" ? message.content : (_a = message.content) == null ? void 0 : _a.text;
     if (!content) return false;
-    const hasPriceKeyword = /\b(price|value|worth|cost)\b/i.test(content);
+    const hasPriceKeyword = /\b(price|value|worth|cost)\b/i.test(content) || /(цен.|стоимость|стоит.)/i.test(content);
+    ;
     const hasToken = /0x[a-fA-F0-9]{40}/.test(content) || // Ethereum address
     /[$#][a-zA-Z]+/.test(content) || // $TOKEN or #TOKEN format
     /\b(of|for)\s+[a-zA-Z0-9]+\b/i.test(content);
@@ -254,12 +275,12 @@ var TokenPriceEvaluator = class {
   }
   examples = [
     {
-      context: "User asking for token price with address",
+      context: "\u041F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C \u0445\u043E\u0447\u0435\u0442 \u0443\u0437\u043D\u0430\u0442\u044C \u0446\u0435\u043D\u0443 \u0441 \u043F\u043E\u043C\u043E\u0449\u044C\u044E \u0430\u0434\u0440\u0435\u0441\u0430",
       messages: [
         {
-          user: "{{user}}",
+          user: "{{user1}}",
           content: {
-            text: "What's the price of 0x1234567890123456789012345678901234567890?",
+            text: "\u0426\u0435\u043D\u0430 0x1234567890123456789012345678901234567890?",
             action: "GET_TOKEN_PRICE"
           }
         }
@@ -270,7 +291,7 @@ var TokenPriceEvaluator = class {
       context: "User checking token price with $ symbol",
       messages: [
         {
-          user: "{{user}}",
+          user: "{{user1}}",
           content: {
             text: "Check price of $eth",
             action: "GET_TOKEN_PRICE"
@@ -283,7 +304,7 @@ var TokenPriceEvaluator = class {
       context: "User checking token price with plain symbol",
       messages: [
         {
-          user: "{{user}}",
+          user: "{{user1}}",
           content: {
             text: "What's the value for btc",
             action: "GET_TOKEN_PRICE"
@@ -312,17 +333,17 @@ var createTokenMemory = async (runtime, _message, formattedOutput) => {
   };
   await runtime.messageManager.createMemory(memory);
 };
-var latestTokensTemplate = `Determine if this is a request for latest tokens. If it is one of the specified situations, perform the corresponding action:
+var latestTokensTemplate = `\u041E\u043F\u0440\u0435\u0434\u0435\u043B\u0438\u0442\u0435, \u044F\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u043B\u0438 \u044D\u0442\u043E \u0437\u0430\u043F\u0440\u043E\u0441\u043E\u043C \u043D\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0438\u0435 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0442\u043E\u043A\u0435\u043D\u043E\u0432. \u0415\u0441\u043B\u0438 \u044D\u0442\u043E \u043E\u0434\u0438\u043D \u0438\u0437 \u0443\u043A\u0430\u0437\u0430\u043D\u043D\u044B\u0445 \u0441\u043B\u0443\u0447\u0430\u0435\u0432, \u0432\u044B\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u044E\u0449\u0435\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435:
 
-Situation 1: "Get latest tokens"
-- Message contains: words like "latest", "new", "recent" AND "tokens"
-- Example: "Show me the latest tokens" or "What are the new tokens?"
-- Action: Get the most recent tokens listed
+\u0421\u0438\u0442\u0443\u0430\u0446\u0438\u044F 1: "\u041F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0435 \u0442\u043E\u043A\u0435\u043D\u044B"
+- \u0421\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u0435 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442: \u0441\u043B\u043E\u0432\u0430 \u0432\u0440\u043E\u0434\u0435 "\u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0435", "\u043D\u043E\u0432\u044B\u0435", "\u0441\u0432\u0435\u0436\u0438\u0435" \u0418 "\u0442\u043E\u043A\u0435\u043D\u044B"
+- \u041F\u0440\u0438\u043C\u0435\u0440: "\u041F\u043E\u043A\u0430\u0436\u0438 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0435 \u0442\u043E\u043A\u0435\u043D\u044B" \u0438\u043B\u0438 "\u041A\u0430\u043A\u0438\u0435 \u043D\u043E\u0432\u044B\u0435 \u0442\u043E\u043A\u0435\u043D\u044B \u043F\u043E\u044F\u0432\u0438\u043B\u0438\u0441\u044C?"
+- \u0414\u0435\u0439\u0441\u0442\u0432\u0438\u0435: \u041F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u0441\u043F\u0438\u0441\u043E\u043A \u0441\u0430\u043C\u044B\u0445 \u043D\u0435\u0434\u0430\u0432\u043D\u043E \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u043D\u044B\u0445 \u0442\u043E\u043A\u0435\u043D\u043E\u0432
 
-Previous conversation for context:
+\u041F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0438\u0439 \u0434\u0438\u0430\u043B\u043E\u0433 \u0434\u043B\u044F \u043A\u043E\u043D\u0442\u0435\u043A\u0441\u0442\u0430:
 {{conversation}}
 
-You are replying to: {{message}}
+\u0412\u044B \u043E\u0442\u0432\u0435\u0447\u0430\u0435\u0442\u0435 \u043D\u0430 \u0441\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u0435: {{message}}
 `;
 var LatestTokensAction = class {
   name = "GET_LATEST_TOKENS";
@@ -334,8 +355,10 @@ var LatestTokensAction = class {
     var _a;
     const content = typeof message.content === "string" ? message.content : (_a = message.content) == null ? void 0 : _a.text;
     if (!content) return false;
-    const hasLatestKeyword = /\b(latest|new|recent)\b/i.test(content);
-    const hasTokensKeyword = /\b(tokens?|coins?|crypto)\b/i.test(content);
+    const hasLatestKeyword = /\b(latest|new|recent)\b/i.test(content) || /(последн..|нов..|недавн..)/i.test(content);
+    ;
+    const hasTokensKeyword = /\b(tokens?|coins?|crypto)\b/i.test(content) || /(токен|токен.|токен..|монет..|монет.|монет)/i.test(content);
+    ;
     return hasLatestKeyword && hasTokensKeyword;
   }
   async handler(runtime, message, _state, _options = {}, callback) {
@@ -354,13 +377,17 @@ var LatestTokensAction = class {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const tokens = await response.json();
-      const formattedOutput = tokens.map((token) => {
-        const description = token.description || "No description available";
-        return `Chain: ${token.chainId}
-Token Address: ${token.tokenAddress}
-URL: ${token.url}
+      const partialTokens = await tokens.filter((item) => item.chainId !== "solana");
+      const formattedOutput = partialTokens.map((token) => {
+        const [website, twitter, tg] = token.links;
+        const description = token.description || "-";
+        return `${token.chainId} 
+[\u{1F4DC}${token.tokenAddress}](${token.url})
+${website ? `[\u{1F310}\u0421\u0430\u0439\u0442](${website.url})` : ""}${twitter ? `
+[\u{1F7E2}X](${twitter.url})` : ""}${tg ? `
+[\u{1F535}Telegram](${tg.url})` : ""}
 Description: ${description}
-
+ \u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014 
 `;
       }).join("");
       await createTokenMemory(runtime, message, formattedOutput);
@@ -385,13 +412,43 @@ Description: ${description}
   examples = [
     [
       {
-        user: "{{user}}",
+        user: "{{user1}}",
         content: {
-          text: "show me the latest tokens"
+          text: "\u043F\u043E\u043A\u0430\u0436\u0438 \u043C\u043D\u0435 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0435 \u0442\u043E\u043A\u0435\u043D\u044B"
         }
       },
       {
-        user: "{{system}}",
+        user: "{{agent}}",
+        content: {
+          text: "Here are the latest tokens added to DexScreener...",
+          action: "GET_LATEST_TOKENS"
+        }
+      }
+    ],
+    [
+      {
+        user: "{{user1}}",
+        content: {
+          text: "\u0441\u043F\u0438\u0441\u043E\u043A \u043D\u043E\u0432\u044B\u0445 \u0442\u043E\u043A\u0435\u043D\u043E\u0432"
+        }
+      },
+      {
+        user: "{{agent}}",
+        content: {
+          text: "Here are the latest tokens added to DexScreener...",
+          action: "GET_LATEST_TOKENS"
+        }
+      }
+    ],
+    [
+      {
+        user: "{{user1}}",
+        content: {
+          text: "\u0441\u043F\u0438\u0441\u043E\u043A \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0442\u043E\u043A\u0435\u043D\u043E\u0432"
+        }
+      },
+      {
+        user: "{{agent}}",
         content: {
           text: "Here are the latest tokens added to DexScreener...",
           action: "GET_LATEST_TOKENS"
@@ -400,17 +457,17 @@ Description: ${description}
     ]
   ];
 };
-var latestBoostedTemplate = `Determine if this is a request for latest boosted tokens. If it is one of the specified situations, perform the corresponding action:
+var latestBoostedTemplate = `\u041E\u043F\u0440\u0435\u0434\u0435\u043B\u0438\u0442\u0435, \u044F\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u043B\u0438 \u044D\u0442\u043E \u0437\u0430\u043F\u0440\u043E\u0441\u043E\u043C \u043D\u0430 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0438\u0435 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0445 \u0442\u043E\u043A\u0435\u043D\u043E\u0432 \u0441 \u0431\u0443\u0441\u0442\u043E\u043C. \u0415\u0441\u043B\u0438 \u044D\u0442\u043E \u043E\u0434\u0438\u043D \u0438\u0437 \u0443\u043A\u0430\u0437\u0430\u043D\u043D\u044B\u0445 \u0441\u043B\u0443\u0447\u0430\u0435\u0432, \u0432\u044B\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u044E\u0449\u0435\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435:
 
-Situation 1: "Get latest boosted tokens"
-- Message contains: words like "latest", "new", "recent" AND "boosted tokens"
-- Example: "Show me the latest boosted tokens" or "What are the new promoted tokens?"
-- Action: Get the most recent boosted tokens
+\u0421\u0438\u0442\u0443\u0430\u0446\u0438\u044F 1: "\u041F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0435 \u043F\u0440\u043E\u0434\u0432\u0438\u0433\u0430\u0435\u043C\u044B\u0435 \u0442\u043E\u043A\u0435\u043D\u044B"
+- \u0421\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u0435 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442: \u0441\u043B\u043E\u0432\u0430 \u0432\u0440\u043E\u0434\u0435 "\u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0435", "\u043D\u043E\u0432\u044B\u0435", "\u0431\u0443\u0441\u0442\u044F\u0442","\u0441\u0432\u0435\u0436\u0438\u0435", "\u0442\u043E\u043A\u0435\u043D\u044B \u0441 \u0431\u0443\u0441\u0442\u043E\u043C" \u0418 "\u0431\u0443\u0441\u0442 \u0442\u043E\u043A\u0435\u043D\u044B"
+- \u041F\u0440\u0438\u043C\u0435\u0440: "\u041F\u043E\u043A\u0430\u0436\u0438 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0435 \u043F\u0440\u043E\u0434\u0432\u0438\u0433\u0430\u0435\u043C\u044B\u0435 \u0442\u043E\u043A\u0435\u043D\u044B" \u0438\u043B\u0438 "\u041A\u0430\u043A\u0438\u0435 \u043D\u043E\u0432\u044B\u0435 \u0442\u043E\u043A\u0435\u043D\u044B \u043F\u0440\u043E\u0434\u0432\u0438\u0433\u0430\u044E\u0442\u0441\u044F?"
+- \u0414\u0435\u0439\u0441\u0442\u0432\u0438\u0435: GET_LATEST_BOOSTED_TOKENS
 
-Previous conversation for context:
+\u041F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0438\u0439 \u0434\u0438\u0430\u043B\u043E\u0433 \u0434\u043B\u044F \u043A\u043E\u043D\u0442\u0435\u043A\u0441\u0442\u0430:
 {{conversation}}
 
-You are replying to: {{message}}
+\u0412\u044B \u043E\u0442\u0432\u0435\u0447\u0430\u0435\u0442\u0435 \u043D\u0430 \u0441\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u0435: {{message}}
 `;
 var LatestBoostedTokensAction = class {
   name = "GET_LATEST_BOOSTED_TOKENS";
@@ -426,11 +483,12 @@ var LatestBoostedTokensAction = class {
     var _a;
     const content = typeof message.content === "string" ? message.content : (_a = message.content) == null ? void 0 : _a.text;
     if (!content) return false;
-    const hasLatestKeyword = /\b(latest|new|recent)\b/i.test(content);
-    const hasBoostedKeyword = /\b(boosted|promoted|featured)\b/i.test(
-      content
-    );
-    const hasTokensKeyword = /\b(tokens?|coins?|crypto)\b/i.test(content);
+    const hasLatestKeyword = /\b(latest|new|recent)\b/i.test(content) || /(последн..|нов..|недавн..)/i.test(content);
+    ;
+    const hasBoostedKeyword = /\b(boosted|promoted|featured)\b/i.test(content) || /(буст|буст..|продвигаем..|продвижен..)/i.test(content);
+    ;
+    const hasTokensKeyword = /\b(tokens?|coins?|crypto)\b/i.test(content) || /(токен|токен.|токен..|монет..|монет.|монет)/i.test(content);
+    ;
     return hasLatestKeyword && (hasBoostedKeyword || hasTokensKeyword);
   }
   async handler(runtime, message, _state, _options = {}, callback) {
@@ -449,13 +507,17 @@ var LatestBoostedTokensAction = class {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const tokens = await response.json();
-      const formattedOutput = tokens.map((token) => {
-        const description = token.description || "No description available";
-        return `Chain: ${token.chainId}
-Token Address: ${token.tokenAddress}
-URL: ${token.url}
+      const partialTokens = await tokens.filter((item) => item.chainId !== "solana");
+      const formattedOutput = partialTokens.map((token) => {
+        const description = token.description || "";
+        const [website, twitter, tg] = token.links;
+        return `${token.chainId} 
+[\u{1F4DC}${token.tokenAddress}](${token.url})
+${website ? `[\u{1F310}\u0421\u0430\u0439\u0442](${website.url})` : ""}${twitter ? `
+[\u{1F7E2}X](${twitter.url})` : ""}${tg ? `
+[\u{1F535}Telegram](${tg.url})` : ""}
 Description: ${description}
-
+ \u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014 
 `;
       }).join("");
       await createTokenMemory(runtime, message, formattedOutput);
@@ -482,30 +544,45 @@ Description: ${description}
       {
         user: "{{user}}",
         content: {
-          text: "show me the latest boosted tokens"
+          text: "\u043F\u043E\u043A\u0430\u0436\u0438 \u0441\u043F\u0438\u0441\u043E\u043A \u043D\u043E\u0432\u044B\u0445 \u0442\u043E\u043A\u0435\u043D\u043E\u0432 \u0441 \u043F\u0440\u043E\u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435\u043C"
         }
       },
       {
         user: "{{system}}",
         content: {
-          text: "Here are the latest boosted tokens on DexScreener...",
+          text: "\u0421\u043F\u0438\u0441\u043E\u043A \u043D\u043E\u0432\u044B\u0445 \u0442\u043E\u043A\u0435\u043D\u043E\u0432 \u0441 \u043F\u0440\u043E\u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435\u043C",
+          action: "GET_LATEST_BOOSTED_TOKENS"
+        }
+      }
+    ],
+    [
+      {
+        user: "{{user1}}",
+        content: {
+          text: "\u043D\u043E\u0432\u044B\u0435 \u0442\u043E\u043A\u0435\u043D\u044B \u0441 \u0431\u0443\u0441\u0442\u043E\u043C"
+        }
+      },
+      {
+        user: "{{agent}}",
+        content: {
+          text: "\u043D\u043E\u0432\u044B\u0435 \u0442\u043E\u043A\u0435\u043D\u044B \u0441 \u0431\u0443\u0441\u0442\u043E\u043C",
           action: "GET_LATEST_BOOSTED_TOKENS"
         }
       }
     ]
   ];
 };
-var topBoostedTemplate = `Determine if this is a request for top boosted tokens. If it is one of the specified situations, perform the corresponding action:
+var topBoostedTemplate = `\u041E\u043F\u0440\u0435\u0434\u0435\u043B\u0438\u0442\u0435, \u044F\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u043B\u0438 \u044D\u0442\u043E \u0437\u0430\u043F\u0440\u043E\u0441\u043E\u043C \u043D\u0430 \u0442\u043E\u043F \u0442\u043E\u043A\u0435\u043D\u043E\u0432 \u0441 \u0431\u0443\u0441\u0442\u043E\u043C. \u0415\u0441\u043B\u0438 \u044D\u0442\u043E \u043E\u0434\u0438\u043D \u0438\u0437 \u0443\u043A\u0430\u0437\u0430\u043D\u043D\u044B\u0445 \u0441\u043B\u0443\u0447\u0430\u0435\u0432, \u0432\u044B\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u044E\u0449\u0435\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435:
 
-Situation 1: "Get top boosted tokens"
-- Message contains: words like "top", "best", "most" AND "boosted tokens"
-- Example: "Show me the top boosted tokens" or "What are the most promoted tokens?"
-- Action: Get the tokens with most active boosts
+\u0421\u0438\u0442\u0443\u0430\u0446\u0438\u044F 1: "\u041F\u043E\u043B\u0443\u0447\u0438\u0442\u044C \u0442\u043E\u043F \u0442\u043E\u043A\u0435\u043D\u043E\u0432 c \u0431\u0443\u0441\u0442\u043E\u043C"
+- \u0421\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u0435 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u0442: \u0441\u043B\u043E\u0432\u0430 \u0432\u0440\u043E\u0434\u0435 "\u0432 \u0442\u043E\u043F\u0435", "\u043B\u0438\u0434\u0440\u0443\u044E\u0449\u0438\u0435", "\u0442\u043E\u043F", "\u043B\u0443\u0447\u0448\u0438\u0435", "\u0441\u0430\u043C\u044B\u0435","\u043F\u0440\u043E\u0434\u0432\u0438\u0433\u0430\u0435\u043C\u044B\u0435" \u0418 "\u0442\u043E\u043A\u0435\u043D\u044B \u0441 \u0431\u0443\u0441\u0442\u043E\u043C"
+- \u041F\u0440\u0438\u043C\u0435\u0440: "\u041F\u043E\u043A\u0430\u0436\u0438 \u0442\u043E\u043F \u0442\u043E\u043A\u0435\u043D\u043E\u0432 \u0441 \u0431\u0443\u0441\u0442\u043E\u043C", "\u043B\u0438\u0434\u0438\u0440\u0443\u044E\u0449\u0438\u0435 \u0442\u043E\u043A\u0435\u043D\u044B \u0441 \u0431\u0443\u0441\u0442\u043E\u043C" \u0438\u043B\u0438 "\u041A\u0430\u043A\u0438\u0435 \u0442\u043E\u043A\u0435\u043D\u044B \u043F\u0440\u043E\u0434\u0432\u0438\u0433\u0430\u044E\u0442\u0441\u044F \u0431\u043E\u043B\u044C\u0448\u0435 \u0432\u0441\u0435\u0433\u043E?"
+- \u0414\u0435\u0439\u0441\u0442\u0432\u0438\u0435: GET_TOP_BOOSTED_TOKENS
 
-Previous conversation for context:
+\u041F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0438\u0439 \u0434\u0438\u0430\u043B\u043E\u0433 \u0434\u043B\u044F \u043A\u043E\u043D\u0442\u0435\u043A\u0441\u0442\u0430:
 {{conversation}}
 
-You are replying to: {{message}}
+\u0412\u044B \u043E\u0442\u0432\u0435\u0447\u0430\u0435\u0442\u0435 \u043D\u0430 \u0441\u043E\u043E\u0431\u0449\u0435\u043D\u0438\u0435: {{message}}
 `;
 var TopBoostedTokensAction = class {
   name = "GET_TOP_BOOSTED_TOKENS";
@@ -521,11 +598,12 @@ var TopBoostedTokensAction = class {
     var _a;
     const content = typeof message.content === "string" ? message.content : (_a = message.content) == null ? void 0 : _a.text;
     if (!content) return false;
-    const hasTopKeyword = /\b(top|best|most)\b/i.test(content);
-    const hasBoostedKeyword = /\b(boosted|promoted|featured)\b/i.test(
-      content
-    );
-    const hasTokensKeyword = /\b(tokens?|coins?|crypto)\b/i.test(content);
+    const hasTopKeyword = /\b(top|best|most)\b/i.test(content) || /(топ|топ.|топовы.)/i.test(content);
+    ;
+    const hasBoostedKeyword = /\b(boosted|promoted|featured)\b/i.test(content) || /(буст|буст..|продвигаем..|продвижен..)/i.test(content);
+    ;
+    const hasTokensKeyword = /\b(tokens?|coins?|crypto)\b/i.test(content) || /(токен|токен.|токен..|монет..|монет.|монет)/i.test(content);
+    ;
     return hasTopKeyword && (hasBoostedKeyword || hasTokensKeyword);
   }
   async handler(runtime, message, _state, _options = {}, callback) {
@@ -544,13 +622,17 @@ var TopBoostedTokensAction = class {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const tokens = await response.json();
-      const formattedOutput = tokens.map((token) => {
-        const description = token.description || "No description available";
-        return `Chain: ${token.chainId}
-Token Address: ${token.tokenAddress}
-URL: ${token.url}
+      const partialTokens = await tokens.filter((item) => item.chainId !== "solana");
+      const formattedOutput = partialTokens.map((token) => {
+        const [website, twitter, tg] = token.links;
+        const description = token.description || "-";
+        return `${token.chainId} 
+[\u{1F4DC}${token.tokenAddress}](${token.url})
+${website ? `[\u{1F310}\u0421\u0430\u0439\u0442](${website.url})` : ""}${twitter ? `
+[\u{1F7E2}X](${twitter.url})` : ""}${tg ? `
+[\u{1F535}Telegram](${tg.url})` : ""}
 Description: ${description}
-
+ \u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014 
 `;
       }).join("");
       await createTokenMemory(runtime, message, formattedOutput);
@@ -575,13 +657,28 @@ Description: ${description}
   examples = [
     [
       {
-        user: "{{user}}",
+        user: "{{user1}}",
         content: {
-          text: "show me the top boosted tokens"
+          text: "\u043F\u043E\u043A\u0430\u0436\u0438 \u0442\u043E\u043F\u043E\u0432\u044B\u0435 \u0442\u043E\u043A\u0435\u043D\u044B \u0441 \u0431\u0443\u0441\u0442\u043E\u043C"
         }
       },
       {
-        user: "{{system}}",
+        user: "{{agent}}",
+        content: {
+          text: "Here are the tokens with the most active boosts on DexScreener...",
+          action: "GET_TOP_BOOSTED_TOKENS"
+        }
+      }
+    ],
+    [
+      {
+        user: "{{user1}}",
+        content: {
+          text: "\u043F\u043E\u043A\u0430\u0436\u0438 \u0442\u043E\u043A\u0435\u043D\u044B \u0432 \u0442\u043E\u043F\u0435 \u0441 \u0431\u0443\u0441\u0442\u043E\u043C"
+        }
+      },
+      {
+        user: "{{agent}}",
         content: {
           text: "Here are the tokens with the most active boosts on DexScreener...",
           action: "GET_TOP_BOOSTED_TOKENS"

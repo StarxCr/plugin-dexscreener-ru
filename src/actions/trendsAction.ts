@@ -91,18 +91,11 @@ export class LatestTokensAction implements Action {
             }
 
             const tokens: TokenProfile[] = await response.json();
-
-            const formattedOutput = tokens
-                .map((token) => {
+            const partialTokens = await tokens.filter(item => item.chainId !== "solana")
+            const formattedOutput = partialTokens.map((token) => {
                     const [website, twitter, tg] = token.links
                     const description = token.description || "-";
-                     return `${token.chainId}
-                [📜${token.tokenAddress}](${token.url})
-                ${website?(`[🌐Сайт](${website.url})`): ("")}${twitter?(`\n[🟢X](${twitter.url})`): ("")}${tg?(`\n[🔵Telegram](${tg.url})`): ("")}   
-                Description: ${description}
-
-                `;
-                })
+                    return `${token.chainId} \n[📜${token.tokenAddress}](${token.url})\n${website?(`[🌐Сайт](${website.url})`): ("")}${twitter?(`\n[🟢X](${twitter.url})`): ("")}${tg?(`\n[🔵Telegram](${tg.url})`): ("")}\nDescription: ${description}\n ——————————————————————— \n`;})
                 .join("");
 
             await createTokenMemory(runtime, message, formattedOutput);
@@ -242,11 +235,13 @@ export class LatestBoostedTokensAction implements Action {
             }
 
             const tokens: TokenProfile[] = await response.json();
-
-            const formattedOutput = tokens
+            const partialTokens = await tokens.filter(item => item.chainId !== "solana")
+            const formattedOutput = partialTokens
                 .map((token) => {
                            const description = token.description || "";
-                    return ` ${token.chainId}\n [${token.tokenAddress}](${token.url}) \n Description: ${description}`;})
+                           const [website, twitter, tg] = token.links
+        return `${token.chainId} \n[📜${token.tokenAddress}](${token.url})\n${website?(`[🌐Сайт](${website.url})`): ("")}${twitter?(`\n[🟢X](${twitter.url})`): ("")}${tg?(`\n[🔵Telegram](${tg.url})`): ("")}\nDescription: ${description}\n ——————————————————————— \n`;})
+                     
                 .join("");
 
             await createTokenMemory(runtime, message, formattedOutput);
@@ -274,35 +269,40 @@ export class LatestBoostedTokensAction implements Action {
     }
 
     examples = [
-    [
-      {
-        user: "{{user1}}",
-        content: {
-          text: "покажи список новых токенов с продвижением"
+      
+      [
+        {
+          user: "{{user}}",
+          content: {
+            text: "покажи список новых токенов с продвижением"
+          }
+        },
+        {
+          user: "{{system}}",
+          content: {
+            text:"Список новых токенов с продвижением",
+            action: "GET_LATEST_BOOSTED_TOKENS"
+          }
         }
-      },
-      {
-        user: "{{agent}}",
-        content: {
-          action: "GET_LATEST_BOOSTED_TOKENS"
+      ],
+      [
+        {
+          user: "{{user1}}",
+          content: {
+            text: "новые токены с бустом"
+          }
+        },
+        {
+          user: "{{agent}}",
+          content: {
+            text:"новые токены с бустом",
+            action: "GET_LATEST_BOOSTED_TOKENS"
+          }
         }
-      }
-    ],
-    [
-      {
-        user: "{{user1}}",
-        content: {
-          text: "новые токены с бустом"
-        }
-      },
-      {
-        user: "{{agent}}",
-        content: {
-          action: "GET_LATEST_BOOSTED_TOKENS"
-        }
-      }
-    ]
+      ]
+    
   ];
+    
 }
 
 export const topBoostedTemplate = `Определите, является ли это запросом на топ токенов с бустом. Если это один из указанных случаев, выполните соответствующее действие:
@@ -369,17 +369,12 @@ export class TopBoostedTokensAction implements Action {
             }
 
             const tokens: TokenProfile[] = await response.json();
-
-            const formattedOutput = tokens
+            const partialTokens = await tokens.filter(item => item.chainId !== "solana")
+            const formattedOutput = partialTokens
                 .map((token) => {
                    const [website, twitter, tg] = token.links
         const description = token.description || "-";
-        return `${token.chainId}
-[📜${token.tokenAddress}](${token.url})
-${website?(`[🌐Сайт](${website.url})`): ("")}${twitter?(`\n[🟢X](${twitter.url})`): ("")}${tg?(`\n[🔵Telegram](${tg.url})`): ("")}   
-Description: ${description}
-
-`;})
+        return `${token.chainId} \n[📜${token.tokenAddress}](${token.url})\n${website?(`[🌐Сайт](${website.url})`): ("")}${twitter?(`\n[🟢X](${twitter.url})`): ("")}${tg?(`\n[🔵Telegram](${tg.url})`): ("")}\nDescription: ${description}\n ——————————————————————— \n`;})
                 .join("");
 
             await createTokenMemory(runtime, message, formattedOutput);
